@@ -1,0 +1,23 @@
+{
+  "Navigation": {
+    "home": "Startseite",
+    "tours": "Touren",
+    "stories": "Geschichten",
+    "admin": "Admin"
+  },
+  "TourCard": {
+    "price": "Preis",
+    "difficulty": "Schwierigkeit",
+    "status": {
+      "Available": "Verfügbar",
+      "LastSeats": "Letzte Plätze",
+      "SoldOut": "Ausverkauft"
+    }
+  },
+  "Admin": {
+    "dashboard": "Instrumententafel",
+    "tours": "Touren verwalten",
+    "stories": "Geschichten verwalten",
+    "upload": "Medien hochladen"
+  }
+}
