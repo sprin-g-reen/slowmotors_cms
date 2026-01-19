@@ -15,13 +15,20 @@ export async function createTour(prevState: any, formData: FormData) {
     title_de: formData.get('title_de'),
     description_en: formData.get('description_en'),
     description_de: formData.get('description_de'),
-    startDate: formData.get('startDate'),
-    endDate: formData.get('endDate'),
     difficulty: formData.get('difficulty'),
     priceEur: Number(formData.get('priceEur')),
     priceInr: Number(formData.get('priceInr')),
-    status: formData.get('status'),
   };
+
+  const datesRaw = formData.get('dates') as string;
+  let dates: { startDate: string, endDate: string, status: string }[] = [];
+  try {
+      if (datesRaw) {
+          dates = JSON.parse(datesRaw);
+      }
+  } catch (e) {
+      console.error("Error parsing dates", e);
+  }
 
   try {
     const validatedData = tourSchema.parse(rawData);
@@ -29,8 +36,13 @@ export async function createTour(prevState: any, formData: FormData) {
     await prisma.tour.create({
       data: {
         ...validatedData,
-        startDate: new Date(validatedData.startDate),
-        endDate: new Date(validatedData.endDate),
+        dates: {
+            create: dates.map(d => ({
+                startDate: new Date(d.startDate),
+                endDate: new Date(d.endDate),
+                status: d.status
+            }))
+        }
       },
     });
 
@@ -38,6 +50,7 @@ export async function createTour(prevState: any, formData: FormData) {
     revalidatePath('/[locale]/tours');
     return { message: 'Tour created successfully', success: true };
   } catch (e) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if (e instanceof z.ZodError) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return { message: 'Validation error', errors: (e as any).errors, success: false };

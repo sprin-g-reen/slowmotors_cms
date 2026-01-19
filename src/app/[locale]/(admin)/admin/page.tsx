@@ -4,8 +4,8 @@ import { Link } from '@/i18n/navigation';
 export default async function AdminDashboard() {
   const upcomingTours = await prisma.tour.findMany({
     take: 5,
-    orderBy: { startDate: 'asc' },
-    where: { startDate: { gte: new Date() } }
+    include: { dates: true },
+    orderBy: { createdAt: 'desc' }, // Order by creation since dates are now a relation
   });
 
   const recentPosts = await prisma.post.findMany({
@@ -26,19 +26,26 @@ export default async function AdminDashboard() {
           </div>
 
           <div className="space-y-3">
-            {upcomingTours.map(tour => (
-              <div key={tour.id} className="flex justify-between items-center p-3 rounded bg-accent/50 border border-gray-700/50 hover:border-primary/50 transition-colors">
-                <div>
-                    <div className="font-semibold text-gray-200">{tour.title_en}</div>
-                    <div className="text-xs text-gray-400">
-                    {new Date(tour.startDate).toLocaleDateString()}
+            {upcomingTours.map(tour => {
+                // Find next upcoming date
+                const nextDate = tour.dates.find(d => new Date(d.startDate) >= new Date()) || tour.dates[0];
+
+                return (
+                  <div key={tour.id} className="flex justify-between items-center p-3 rounded bg-accent/50 border border-gray-700/50 hover:border-primary/50 transition-colors">
+                    <div>
+                        <div className="font-semibold text-gray-200">{tour.title_en}</div>
+                        <div className="text-xs text-gray-400">
+                        {nextDate ? new Date(nextDate.startDate).toLocaleDateString() : 'No dates'}
+                        </div>
                     </div>
-                </div>
-                <span className={`text-xs font-bold px-2 py-1 rounded text-white ${tour.status === 'Available' ? 'bg-green-600' : 'bg-red-600'}`}>
-                    {tour.status}
-                </span>
-              </div>
-            ))}
+                    {nextDate && (
+                        <span className={`text-xs font-bold px-2 py-1 rounded text-white ${nextDate.status === 'Available' ? 'bg-green-600' : 'bg-red-600'}`}>
+                            {nextDate.status}
+                        </span>
+                    )}
+                  </div>
+                )
+            })}
             {upcomingTours.length === 0 && <p className="text-gray-500 italic text-center py-4">No upcoming tours scheduled.</p>}
           </div>
         </div>

@@ -26,16 +26,23 @@ model Tour {
   title_de      String
   description_en String
   description_de String
-  startDate     DateTime
-  endDate       DateTime
   difficulty    String         // Easy, Medium, Hard, Expert
   priceEur      Float
   priceInr      Float
   routeMapUrl   String?
-  status        String         // Available, Last Seats, Sold Out
+  dates         TourDate[]
   images        GalleryImage[]
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
+}
+
+model TourDate {
+  id        String   @id @default(uuid())
+  startDate DateTime
+  endDate   DateTime
+  status    String   // Available, LastSeats, SoldOut
+  tourId    String
+  tour      Tour     @relation(fields: [tourId], references: [id], onDelete: Cascade)
 }
 
 model Post {
@@ -45,6 +52,7 @@ model Post {
   title_de      String
   content_en    String   // Rich text content (HTML/JSON)
   content_de    String   // Rich text content (HTML/JSON)
+  content       String?  // JSON string for block-based content
   published     Boolean  @default(false)
   coverImage    String?
   createdAt     DateTime @default(now())

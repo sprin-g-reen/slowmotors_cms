@@ -1,29 +1,37 @@
 'use client';
 
 import { useTranslations, useLocale } from 'next-intl';
-import { Tour, GalleryImage } from '@prisma/client';
+import { Tour, GalleryImage, TourDate } from '@prisma/client';
 import Image from 'next/image';
 import { Link } from '@/i18n/navigation';
 import { motion } from 'framer-motion';
 import { Calendar, Gauge, MapPin } from 'lucide-react';
 
-interface TourWithImages extends Tour {
+interface TourWithRelations extends Tour {
   images: GalleryImage[];
+  dates: TourDate[];
 }
 
-export default function TourCard({ tour }: { tour: TourWithImages }) {
-  const t = useTranslations('TourCard');
+export default function TourCard({ tour }: { tour: TourWithRelations }) {
+  // const t = useTranslations('TourCard');
   const locale = useLocale();
 
   const title = locale === 'de' ? tour.title_de : tour.title_en;
-  //const description = locale === 'de' ? tour.description_de : tour.description_en;
-
   const mainImage = tour.images && tour.images.length > 0 ? tour.images[0].url : '/placeholder.jpg';
+
+  // Determine aggregate status or next available date status
+  const upcomingDates = tour.dates
+    .filter(d => new Date(d.startDate) >= new Date())
+    .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
+
+  const nextDate = upcomingDates[0];
+  const displayStatus = nextDate ? nextDate.status : 'Sold Out';
+  const displayDate = nextDate ? new Date(nextDate.startDate).toLocaleDateString() : 'TBA';
 
   const statusColors = {
       'Available': 'bg-green-500',
-      'Last Seats': 'bg-orange-500',
-      'Sold Out': 'bg-red-500',
+      'LastSeats': 'bg-orange-500',
+      'SoldOut': 'bg-red-500',
       'Hidden': 'bg-gray-500'
   };
 
@@ -40,8 +48,9 @@ export default function TourCard({ tour }: { tour: TourWithImages }) {
            className="object-cover transition-transform duration-700 group-hover:scale-110"
          />
          <div className="absolute top-4 right-4">
-            <span className={`text-xs font-bold px-3 py-1 rounded-full text-white uppercase tracking-wide shadow-sm ${statusColors[tour.status as keyof typeof statusColors] || 'bg-gray-500'}`}>
-                {t(`status.${tour.status}` as "status.Available" | "status.LastSeats" | "status.SoldOut")}
+            <span className={`text-xs font-bold px-3 py-1 rounded-full text-white uppercase tracking-wide shadow-sm ${statusColors[displayStatus as keyof typeof statusColors] || 'bg-gray-500'}`}>
+                {/* Fallback translation or direct display */}
+                {displayStatus}
             </span>
          </div>
       </div>
@@ -52,7 +61,7 @@ export default function TourCard({ tour }: { tour: TourWithImages }) {
         <div className="grid grid-cols-2 gap-4 my-4 text-gray-300 text-sm">
             <div className="flex items-center gap-2">
                 <Calendar size={16} className="text-primary" />
-                <span>{new Date(tour.startDate).toLocaleDateString()}</span>
+                <span>{displayDate}</span>
             </div>
             <div className="flex items-center gap-2">
                 <Gauge size={16} className="text-primary" />
@@ -70,7 +79,7 @@ export default function TourCard({ tour }: { tour: TourWithImages }) {
             <span className="text-2xl font-bold text-white">€{tour.priceEur}</span>
           </div>
           <Link
-            href={`/tours/${tour.id}`} // Assuming detail page exists or just linking somewhere
+            href={`/tours/${tour.id}`}
             className="bg-primary hover:bg-primary-hover text-white px-5 py-2 rounded font-semibold transition-colors shadow-lg shadow-primary/20"
           >
             Details

@@ -4,8 +4,11 @@ import { Link } from '@/i18n/navigation';
 
 export default async function ToursPage() {
   const tours = await prisma.tour.findMany({
-    include: { images: true },
-    where: { status: { not: 'Hidden' } }
+    include: {
+        images: true,
+        dates: true
+    },
+    // Filter by having at least one available date, or logic as needed
   });
 
   return (

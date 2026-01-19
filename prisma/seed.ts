@@ -5,6 +5,7 @@ const prisma = new PrismaClient();
 async function main() {
   // Clean up existing data
   await prisma.galleryImage.deleteMany();
+  await prisma.tourDate.deleteMany();
   await prisma.tour.deleteMany();
   await prisma.post.deleteMany();
   await prisma.user.deleteMany();
@@ -28,12 +29,15 @@ async function main() {
       title_de: 'Die Große Himalaya-Odyssee',
       description_en: 'Conquer the highest motorable passes in the world. A 10-day expedition through Ladakh, Zanskar, and the Nubra Valley. Rugged terrain, ancient monasteries, and pure adrenaline.',
       description_de: 'Erobern Sie die höchsten befahrbaren Pässe der Welt. Eine 10-tägige Expedition durch Ladakh, Zanskar und das Nubra-Tal. Schroffe Landschaften, alte Klöster und pures Adrenalin.',
-      startDate: new Date('2024-07-01'),
-      endDate: new Date('2024-07-11'),
       difficulty: 'Expert',
       priceEur: 3200,
       priceInr: 280000,
-      status: 'Last Seats',
+      dates: {
+          create: [
+              { startDate: new Date('2024-07-01'), endDate: new Date('2024-07-11'), status: 'LastSeats' },
+              { startDate: new Date('2024-08-01'), endDate: new Date('2024-08-11'), status: 'Available' }
+          ]
+      }
     },
   });
 
@@ -44,12 +48,14 @@ async function main() {
       title_de: 'Rajasthan Royals: Wüstensturm',
       description_en: 'Ride through the golden sands of Thar. Stay in heritage palaces, witness vibrant culture, and experience the royal hospitality of India on a classic Royal Enfield.',
       description_de: 'Fahren Sie durch den goldenen Sand der Thar. Übernachten Sie in historischen Palästen, erleben Sie die lebendige Kultur und die königliche Gastfreundschaft Indiens auf einer klassischen Royal Enfield.',
-      startDate: new Date('2024-11-15'),
-      endDate: new Date('2024-11-25'),
       difficulty: 'Medium',
       priceEur: 2400,
       priceInr: 210000,
-      status: 'Available',
+      dates: {
+          create: [
+              { startDate: new Date('2024-11-15'), endDate: new Date('2024-11-25'), status: 'Available' }
+          ]
+      }
     },
   });
 
@@ -60,12 +66,14 @@ async function main() {
       title_de: 'Spiti Valley: Das Mittelland',
       description_en: 'A challenging ride through the rugged Spiti Valley. Remote villages, treacherous roads, and breathtaking landscapes await.',
       description_de: 'Eine anspruchsvolle Fahrt durch das raue Spiti-Tal. Abgelegene Dörfer, tückische Straßen und atemberaubende Landschaften erwarten Sie.',
-      startDate: new Date('2024-09-05'),
-      endDate: new Date('2024-09-14'),
       difficulty: 'Hard',
       priceEur: 2100,
       priceInr: 180000,
-      status: 'Sold Out',
+      dates: {
+          create: [
+               { startDate: new Date('2024-09-05'), endDate: new Date('2024-09-14'), status: 'SoldOut' }
+          ]
+      }
     },
   });
 
@@ -77,6 +85,12 @@ async function main() {
       title_de: 'Wichtiger Ausrüstungsleitfaden für große Höhen',
       content_en: '<p>Riding at 18,000 feet requires more than just skill. Here is what you need to survive and thrive.</p>',
       content_de: '<p>Fahren auf 18.000 Fuß erfordert mehr als nur Können. Hier ist, was Sie brauchen, um zu überleben und zu gedeihen.</p>',
+      content: JSON.stringify({
+          blocks: [
+              { type: 'header', data: { text: 'Helmet Selection', level: 2 } },
+              { type: 'paragraph', data: { text: 'Always choose a DOT/ECE certified helmet...' } }
+          ]
+      }),
       published: true,
       updatedAt: new Date(),
     },
