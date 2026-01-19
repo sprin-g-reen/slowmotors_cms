@@ -1,128 +1,89 @@
 'use client';
 
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { tourSchema, TourFormData } from '@/lib/schemas';
-import { useRouter } from '@/i18n/navigation';
-import { useState } from 'react';
+import { useActionState } from 'react';
+import { createTour } from '@/app/actions';
+import { useFormStatus } from 'react-dom';
 
-export default function TourForm() {
-  const router = useRouter();
-  const [error, setError] = useState<string | null>(null);
+const initialState = {
+  message: '',
+  success: false,
+};
 
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<TourFormData>({
-    resolver: zodResolver(tourSchema),
-    defaultValues: {
-      difficulty: 'Medium',
-      status: 'Available',
-      priceEur: 0,
-      priceInr: 0,
-    }
-  });
-
-  const onSubmit = async (data: TourFormData) => {
-    try {
-      // Convert string dates to ISO for API if needed, or API handles it.
-      // Schema expects string, Prisma expects Date object. API should handle conversion.
-      const res = await fetch('/api/tours', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-             ...data,
-             startDate: new Date(data.startDate),
-             endDate: new Date(data.endDate),
-        }),
-      });
-
-      if (!res.ok) throw new Error('Failed to create tour');
-
-      router.refresh();
-      // Reset form or redirect
-      alert('Tour created!');
-    } catch (e) {
-      setError('Error creating tour');
-    }
-  };
+function SubmitButton() {
+  const { pending } = useFormStatus();
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 max-w-2xl bg-gray-50 p-4 rounded">
-      {error && <div className="text-red-500">{error}</div>}
+    <button
+      type="submit"
+      disabled={pending}
+      className="bg-primary hover:bg-primary-hover text-white px-6 py-3 rounded font-bold uppercase tracking-wider disabled:bg-gray-500 w-full md:w-auto"
+    >
+      {pending ? 'Creating...' : 'Create Tour'}
+    </button>
+  );
+}
 
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium">Slug</label>
-          <input {...register('slug')} className="w-full border p-2 rounded" />
-          {errors.slug && <p className="text-red-500 text-xs">{errors.slug.message}</p>}
-        </div>
-        <div>
-            {/* Spacer or other field */}
-        </div>
-      </div>
+export default function TourForm() {
+  const [state, formAction] = useActionState(createTour, initialState);
 
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium">Title (EN)</label>
-          <input {...register('title_en')} className="w-full border p-2 rounded" />
-          {errors.title_en && <p className="text-red-500 text-xs">{errors.title_en.message}</p>}
+  return (
+    <form action={formAction} className="space-y-6 max-w-3xl bg-secondary p-8 rounded-xl border border-gray-800 text-gray-200 shadow-xl">
+      {state.message && (
+        <div className={`p-4 rounded ${state.success ? 'bg-green-900/50 text-green-200' : 'bg-red-900/50 text-red-200'}`}>
+            {state.message}
         </div>
-        <div>
-          <label className="block text-sm font-medium">Title (DE)</label>
-          <input {...register('title_de')} className="w-full border p-2 rounded" />
-          {errors.title_de && <p className="text-red-500 text-xs">{errors.title_de.message}</p>}
-        </div>
-      </div>
+      )}
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label className="block text-sm font-medium">Description (EN)</label>
-          <textarea {...register('description_en')} className="w-full border p-2 rounded" />
-          {errors.description_en && <p className="text-red-500 text-xs">{errors.description_en.message}</p>}
+          <label className="block text-sm font-bold uppercase tracking-wider mb-2 text-gray-400">Slug</label>
+          <input name="slug" className="w-full bg-accent border border-gray-700 p-3 rounded text-white focus:border-primary focus:outline-none" required />
         </div>
-        <div>
-          <label className="block text-sm font-medium">Description (DE)</label>
-          <textarea {...register('description_de')} className="w-full border p-2 rounded" />
-          {errors.description_de && <p className="text-red-500 text-xs">{errors.description_de.message}</p>}
-        </div>
-      </div>
 
-      <div className="grid grid-cols-2 gap-4">
+        {/* EN/DE Titles */}
         <div>
-          <label className="block text-sm font-medium">Start Date</label>
-          <input type="date" {...register('startDate')} className="w-full border p-2 rounded" />
-          {errors.startDate && <p className="text-red-500 text-xs">{errors.startDate.message}</p>}
+           <label className="block text-sm font-bold uppercase tracking-wider mb-2 text-gray-400">Title (EN)</label>
+           <input name="title_en" className="w-full bg-accent border border-gray-700 p-3 rounded text-white focus:border-primary focus:outline-none" required />
         </div>
         <div>
-          <label className="block text-sm font-medium">End Date</label>
-          <input type="date" {...register('endDate')} className="w-full border p-2 rounded" />
-          {errors.endDate && <p className="text-red-500 text-xs">{errors.endDate.message}</p>}
+           <label className="block text-sm font-bold uppercase tracking-wider mb-2 text-gray-400">Title (DE)</label>
+           <input name="title_de" className="w-full bg-accent border border-gray-700 p-3 rounded text-white focus:border-primary focus:outline-none" required />
         </div>
-      </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium">Price (EUR)</label>
-          <input
-            type="number"
-            {...register('priceEur', { valueAsNumber: true })}
-            className="w-full border p-2 rounded"
-          />
-          {errors.priceEur && <p className="text-red-500 text-xs">{errors.priceEur.message}</p>}
+         {/* Descriptions */}
+        <div className="md:col-span-2">
+           <label className="block text-sm font-bold uppercase tracking-wider mb-2 text-gray-400">Description (EN)</label>
+           <textarea name="description_en" rows={3} className="w-full bg-accent border border-gray-700 p-3 rounded text-white focus:border-primary focus:outline-none" required />
         </div>
-        <div>
-          <label className="block text-sm font-medium">Price (INR)</label>
-          <input
-            type="number"
-            {...register('priceInr', { valueAsNumber: true })}
-            className="w-full border p-2 rounded"
-          />
-          {errors.priceInr && <p className="text-red-500 text-xs">{errors.priceInr.message}</p>}
+        <div className="md:col-span-2">
+           <label className="block text-sm font-bold uppercase tracking-wider mb-2 text-gray-400">Description (DE)</label>
+           <textarea name="description_de" rows={3} className="w-full bg-accent border border-gray-700 p-3 rounded text-white focus:border-primary focus:outline-none" required />
         </div>
-      </div>
 
-      <div className="grid grid-cols-2 gap-4">
+        {/* Dates */}
         <div>
-          <label className="block text-sm font-medium">Difficulty</label>
-          <select {...register('difficulty')} className="w-full border p-2 rounded">
+          <label className="block text-sm font-bold uppercase tracking-wider mb-2 text-gray-400">Start Date</label>
+          <input type="date" name="startDate" className="w-full bg-accent border border-gray-700 p-3 rounded text-white focus:border-primary focus:outline-none" required />
+        </div>
+        <div>
+          <label className="block text-sm font-bold uppercase tracking-wider mb-2 text-gray-400">End Date</label>
+          <input type="date" name="endDate" className="w-full bg-accent border border-gray-700 p-3 rounded text-white focus:border-primary focus:outline-none" required />
+        </div>
+
+        {/* Pricing */}
+        <div>
+          <label className="block text-sm font-bold uppercase tracking-wider mb-2 text-gray-400">Price (EUR)</label>
+          <input type="number" name="priceEur" className="w-full bg-accent border border-gray-700 p-3 rounded text-white focus:border-primary focus:outline-none" required />
+        </div>
+        <div>
+          <label className="block text-sm font-bold uppercase tracking-wider mb-2 text-gray-400">Price (INR)</label>
+          <input type="number" name="priceInr" className="w-full bg-accent border border-gray-700 p-3 rounded text-white focus:border-primary focus:outline-none" required />
+        </div>
+
+        {/* Meta */}
+        <div>
+          <label className="block text-sm font-bold uppercase tracking-wider mb-2 text-gray-400">Difficulty</label>
+          <select name="difficulty" className="w-full bg-accent border border-gray-700 p-3 rounded text-white focus:border-primary focus:outline-none">
             <option value="Easy">Easy</option>
             <option value="Medium">Medium</option>
             <option value="Hard">Hard</option>
@@ -130,8 +91,8 @@ export default function TourForm() {
           </select>
         </div>
         <div>
-          <label className="block text-sm font-medium">Status</label>
-           <select {...register('status')} className="w-full border p-2 rounded">
+          <label className="block text-sm font-bold uppercase tracking-wider mb-2 text-gray-400">Status</label>
+           <select name="status" className="w-full bg-accent border border-gray-700 p-3 rounded text-white focus:border-primary focus:outline-none">
             <option value="Available">Available</option>
             <option value="Last Seats">Last Seats</option>
             <option value="Sold Out">Sold Out</option>
@@ -139,13 +100,9 @@ export default function TourForm() {
         </div>
       </div>
 
-      <button
-        type="submit"
-        disabled={isSubmitting}
-        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:bg-gray-400"
-      >
-        {isSubmitting ? 'Creating...' : 'Create Tour'}
-      </button>
+      <div className="pt-4">
+        <SubmitButton />
+      </div>
     </form>
   );
 }

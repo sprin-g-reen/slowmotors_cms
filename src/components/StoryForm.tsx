@@ -1,71 +1,62 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from '@/i18n/navigation';
+import { useActionState, useState } from 'react';
+import { createStory } from '@/app/actions';
+import { useFormStatus } from 'react-dom';
 import RichTextEditor from '@/components/RichTextEditor';
 
-export default function StoryForm() {
-  const router = useRouter();
-  const [titleEn, setTitleEn] = useState('');
-  const [contentEn, setContentEn] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+const initialState = {
+  message: '',
+  success: false,
+};
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-
-    try {
-      const res = await fetch('/api/posts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            title_en: titleEn,
-            title_de: titleEn, // Fallback for demo
-            content_en: contentEn,
-            content_de: contentEn, // Fallback for demo
-            slug: titleEn.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, ''),
-            published: true
-        }),
-      });
-
-      if (!res.ok) throw new Error('Failed to create story');
-
-      router.refresh();
-      setTitleEn('');
-      setContentEn('');
-      alert('Story created!');
-    } catch (error) {
-      alert('Error creating story');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+function SubmitButton() {
+  const { pending } = useFormStatus();
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 max-w-4xl bg-gray-50 p-4 rounded">
+    <button
+      type="submit"
+      disabled={pending}
+      className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded font-bold uppercase tracking-wider disabled:bg-gray-500 w-full md:w-auto transition-colors"
+    >
+      {pending ? 'Publishing...' : 'Publish Story'}
+    </button>
+  );
+}
+
+export default function StoryForm() {
+  const [state, formAction] = useActionState(createStory, initialState);
+  const [content, setContent] = useState('');
+
+  return (
+    <form action={formAction} className="space-y-6 max-w-4xl bg-secondary p-8 rounded-xl border border-gray-800 text-gray-200 shadow-xl">
+        {state.message && (
+            <div className={`p-4 rounded ${state.success ? 'bg-green-900/50 text-green-200' : 'bg-red-900/50 text-red-200'}`}>
+                {state.message}
+            </div>
+        )}
+
         <div>
-            <label className="block text-sm font-medium mb-1">Title (EN)</label>
+            <label className="block text-sm font-bold uppercase tracking-wider mb-2 text-gray-400">Title (EN)</label>
             <input
-                type="text"
-                value={titleEn}
-                onChange={(e) => setTitleEn(e.target.value)}
-                className="w-full border p-2 rounded"
+                name="title_en"
+                className="w-full bg-accent border border-gray-700 p-3 rounded text-white focus:border-primary focus:outline-none"
                 required
             />
         </div>
 
         <div>
-            <label className="block text-sm font-medium mb-1">Content (EN)</label>
-            <RichTextEditor content={contentEn} onChange={setContentEn} />
+            <label className="block text-sm font-bold uppercase tracking-wider mb-2 text-gray-400">Content (EN)</label>
+            <div className="bg-white text-black rounded overflow-hidden min-h-[200px]">
+                <RichTextEditor content={content} onChange={setContent} />
+            </div>
+            {/* Hidden input to pass content to Server Action */}
+            <input type="hidden" name="content_en" value={content} />
         </div>
 
-        <button
-            type="submit"
-            disabled={isSubmitting}
-            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:bg-gray-400"
-        >
-            {isSubmitting ? 'Publishing...' : 'Publish Story'}
-        </button>
+        <div className="pt-4">
+            <SubmitButton />
+        </div>
     </form>
   );
 }
