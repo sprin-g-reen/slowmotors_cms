@@ -34,35 +34,37 @@ export default function Navigation() {
   ];
 
   return (
-    <nav className={`fixed w-full z-50 transition-all duration-300 ${scrolled ? 'bg-background/95 backdrop-blur-md shadow-lg py-3' : 'bg-transparent py-5'}`}>
+    <nav className={`fixed w-full z-50 transition-all duration-300 border-b border-transparent ${scrolled ? 'bg-background/90 backdrop-blur-md border-gray-800 py-3' : 'bg-transparent py-6'}`}>
       <div className="container mx-auto px-4 flex justify-between items-center">
-        <Link href="/" className="text-2xl font-bold font-outfit flex items-center gap-2 text-foreground">
-            <Bike className="text-primary" size={32} />
-            <span className="tracking-tighter">SLOW MOTORS</span>
+        <Link href="/" className="text-2xl font-bold font-outfit flex items-center gap-2 text-foreground group">
+            <div className="bg-primary p-1">
+                <Bike className="text-black" size={24} />
+            </div>
+            <span className="tracking-tighter uppercase group-hover:text-primary transition-colors">Slow Motors</span>
         </Link>
 
         {/* Desktop Menu */}
-        <div className="hidden md:flex gap-8 items-center">
+        <div className="hidden md:flex gap-10 items-center">
           {navLinks.map((link) => (
             <Link
                 key={link.href}
                 href={link.href}
-                className="text-sm font-semibold uppercase tracking-wider hover:text-primary transition-colors"
+                className="text-sm font-bold uppercase tracking-widest text-gray-300 hover:text-white transition-colors relative after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-0 after:h-0.5 after:bg-primary after:transition-all hover:after:w-full"
             >
                 {link.label}
             </Link>
           ))}
-          <div className="border-l border-gray-600 pl-4 ml-2">
+          <div className="border-l border-gray-700 pl-6 ml-2">
             <div className="flex gap-2">
                 <button
                     onClick={() => handleLocaleChange('en')}
-                    className={`text-xs font-bold px-2 py-1 rounded ${locale === 'en' ? 'bg-primary text-white' : 'text-gray-400 hover:text-white'}`}
+                    className={`text-[10px] font-bold px-2 py-1 uppercase tracking-wider ${locale === 'en' ? 'bg-white text-black' : 'text-gray-500 hover:text-white'}`}
                 >
                     EN
                 </button>
                 <button
                     onClick={() => handleLocaleChange('de')}
-                    className={`text-xs font-bold px-2 py-1 rounded ${locale === 'de' ? 'bg-primary text-white' : 'text-gray-400 hover:text-white'}`}
+                    className={`text-[10px] font-bold px-2 py-1 uppercase tracking-wider ${locale === 'de' ? 'bg-white text-black' : 'text-gray-500 hover:text-white'}`}
                 >
                     DE
                 </button>
@@ -71,8 +73,8 @@ export default function Navigation() {
         </div>
 
         {/* Mobile Toggle */}
-        <button className="md:hidden text-foreground" onClick={() => setIsOpen(!isOpen)}>
-            {isOpen ? <X size={28} /> : <Menu size={28} />}
+        <button className="md:hidden text-foreground hover:text-primary transition-colors" onClick={() => setIsOpen(!isOpen)}>
+            {isOpen ? <X size={32} /> : <Menu size={32} />}
         </button>
       </div>
 
@@ -83,33 +85,31 @@ export default function Navigation() {
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
-                className="absolute top-full left-0 w-full bg-background border-b border-secondary p-4 md:hidden shadow-xl"
+                className="absolute top-full left-0 w-full bg-background border-b border-gray-800 p-6 md:hidden shadow-2xl flex flex-col gap-6"
             >
-                <div className="flex flex-col gap-4">
-                    {navLinks.map((link) => (
-                        <Link
-                            key={link.href}
-                            href={link.href}
-                            onClick={() => setIsOpen(false)}
-                            className="text-lg font-semibold block py-2 border-b border-secondary/30"
-                        >
-                            {link.label}
-                        </Link>
-                    ))}
-                    <div className="flex gap-4 mt-4">
-                        <button
-                            onClick={() => handleLocaleChange('en')}
-                            className={`flex-1 py-2 text-center rounded border border-secondary ${locale === 'en' ? 'bg-primary border-primary' : ''}`}
-                        >
-                            English
-                        </button>
-                        <button
-                            onClick={() => handleLocaleChange('de')}
-                            className={`flex-1 py-2 text-center rounded border border-secondary ${locale === 'de' ? 'bg-primary border-primary' : ''}`}
-                        >
-                            Deutsch
-                        </button>
-                    </div>
+                {navLinks.map((link) => (
+                    <Link
+                        key={link.href}
+                        href={link.href}
+                        onClick={() => setIsOpen(false)}
+                        className="text-2xl font-bold font-outfit uppercase tracking-tight text-white hover:text-primary transition-colors"
+                    >
+                        {link.label}
+                    </Link>
+                ))}
+                <div className="flex gap-4 pt-4 border-t border-gray-800">
+                    <button
+                        onClick={() => handleLocaleChange('en')}
+                        className={`flex-1 py-3 text-center uppercase font-bold tracking-wider text-sm border border-gray-800 ${locale === 'en' ? 'bg-primary text-black border-primary' : 'text-gray-400'}`}
+                    >
+                        English
+                    </button>
+                    <button
+                        onClick={() => handleLocaleChange('de')}
+                        className={`flex-1 py-3 text-center uppercase font-bold tracking-wider text-sm border border-gray-800 ${locale === 'de' ? 'bg-primary text-black border-primary' : 'text-gray-400'}`}
+                    >
+                        Deutsch
+                    </button>
                 </div>
             </motion.div>
         )}

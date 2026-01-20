@@ -1,17 +1,17 @@
 @import "tailwindcss";
 
 :root {
-  /* Slate 950 */
-  --background: #020617;
-  /* Amber 50 */
-  --foreground: #fffbeb;
-  /* Orange 600 */
-  --primary: #ea580c;
-  /* Orange 700 */
-  --primary-hover: #c2410c;
+  /* Slate 950 - Deepened for better contrast */
+  --background: #050505;
+  /* Pure White */
+  --foreground: #ffffff;
+  /* Sharp Orange */
+  --primary: #ff6b00;
+  /* Darker Orange */
+  --primary-hover: #cc5500;
 
-  --secondary: #1e293b; /* Slate 800 */
-  --accent: #334155; /* Slate 700 */
+  --secondary: #111111; /* Near Black */
+  --accent: #222222; /* Dark Gray */
 
   --font-sans: 'Inter', sans-serif;
   --font-display: 'Outfit', sans-serif;
@@ -25,6 +25,21 @@ body {
 
 h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-display);
+    letter-spacing: -0.02em;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--accent);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
 }
 
 @theme inline {
