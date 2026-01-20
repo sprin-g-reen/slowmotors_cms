@@ -11,11 +11,17 @@ interface ItineraryContent {
 }
 
 interface ItineraryProps {
-  content: unknown;
+  content: string; // JSON string
 }
 
 export function Itinerary({ content }: ItineraryProps) {
-  const safeContent = content as ItineraryContent;
+  let safeContent: ItineraryContent | null = null;
+
+  try {
+    safeContent = JSON.parse(content) as ItineraryContent;
+  } catch (e) {
+    return null;
+  }
 
   if (!safeContent?.itinerary || safeContent.itinerary.length === 0) {
     return null;

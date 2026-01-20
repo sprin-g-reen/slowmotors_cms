@@ -18,7 +18,7 @@ export async function submitForm(formId: string, data: Record<string, unknown>) 
       return { success: false, error: "Form not found" };
     }
 
-    const definition = form.schema as unknown as FormDefinition;
+    const definition = JSON.parse(form.schema) as FormDefinition;
     const zodSchema = generateZodSchema(definition);
 
     const validationResult = zodSchema.safeParse(data);
@@ -36,7 +36,7 @@ export async function submitForm(formId: string, data: Record<string, unknown>) 
     await prisma.formSubmission.create({
       data: {
         dynamicFormId: formId,
-        data: safeData as Prisma.InputJsonValue,
+        data: JSON.stringify(safeData),
       },
     });
 
