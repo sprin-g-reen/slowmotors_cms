@@ -1,0 +1,122 @@
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Difficulty {
+  LEISURE
+  SPORT
+  ENDURANCE
+}
+
+enum GalleryType {
+  RIDE_GALLERY
+  EVENT
+  GENERAL
+}
+
+enum SubmissionStatus {
+  NEW
+  REVIEWED
+  ARCHIVED
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String?
+  posts     Post[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Ride {
+  id              String        @id @default(uuid())
+  title           String
+  slug            String        @unique
+  price           Decimal
+  duration        String
+  difficulty      Difficulty
+  routeMapUrl     String?
+  maxParticipants Int
+  content         Json
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  dates           RideDate[]
+  galleryItems    GalleryItem[] @relation("RideGalleryItems")
+}
+
+model RideDate {
+  id             String   @id @default(uuid())
+  startDate      DateTime
+  endDate        DateTime
+  seatsAvailable Int
+  rideId         String
+  ride           Ride     @relation(fields: [rideId], references: [id])
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Gallery {
+  id          String        @id @default(uuid())
+  name        String
+  description String
+  type        GalleryType
+  items       GalleryItem[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model GalleryItem {
+  id        String   @id @default(uuid())
+  url       String
+  caption   String
+  width     Int
+  height    Int
+  blurData  String
+  galleryId String
+  gallery   Gallery  @relation(fields: [galleryId], references: [id])
+  rideId    String?
+  ride      Ride?    @relation("RideGalleryItems", fields: [rideId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Post {
+  id          String   @id @default(uuid())
+  title       String
+  slug        String   @unique
+  excerpt     String
+  content     Json // Markdown or JSON content
+  publishedAt DateTime
+  authorId    String
+  author      User     @relation(fields: [authorId], references: [id])
+  coverImage  String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model DynamicForm {
+  id          String           @id @default(uuid())
+  name        String
+  schema      Json
+  isActive    Boolean          @default(true)
+  submissions FormSubmission[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+}
+
+model FormSubmission {
+  id            String           @id @default(uuid())
+  data          Json
+  status        SubmissionStatus @default(NEW)
+  dynamicFormId String
+  dynamicForm   DynamicForm      @relation(fields: [dynamicFormId], references: [id])
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+}

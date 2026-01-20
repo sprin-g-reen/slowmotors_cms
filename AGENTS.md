@@ -5,6 +5,7 @@ Slow Motors is a high-end vehicle inventory system. Speed and SEO are paramount.
 
 ## Tech Stack
 - Next.js 15 (App Router)
+- Bun (Runtime)
 - Supabase (Postgres)
 - Prisma (ORM)
 - ShadCN UI (Components)
