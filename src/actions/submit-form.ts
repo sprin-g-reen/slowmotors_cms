@@ -4,6 +4,9 @@ import { generateZodSchema } from "@/lib/form-utils";
 import { FormDefinition } from "@/types/form";
 import { Prisma } from "@prisma/client";
 import prisma from "@/lib/db";
+import { sendTransactionalEmail } from "@/lib/mail";
+import { EnquiryReceived } from "@/emails/enquiry-received";
+import { AdminNotification } from "@/emails/admin-notification";
 
 export async function submitForm(formId: string, data: Record<string, unknown>) {
   try {
@@ -28,15 +31,38 @@ export async function submitForm(formId: string, data: Record<string, unknown>) 
       };
     }
 
+    const safeData = validationResult.data as Record<string, unknown>;
+
     await prisma.formSubmission.create({
       data: {
         dynamicFormId: formId,
-        data: validationResult.data as Prisma.InputJsonValue,
+        data: safeData as Prisma.InputJsonValue,
       },
     });
 
-    // Stub: Trigger sendEnquiryEmail workflow
-    console.log("Triggering email workflow for form:", formId);
+    // Email Workflow
+    // 1. Send acknowledgement to user if email exists
+    if (typeof safeData.email === 'string') {
+      await sendTransactionalEmail({
+        to: safeData.email,
+        subject: "We received your enquiry - Slow Motors",
+        react: EnquiryReceived({
+          name: (safeData.fullName as string) || "Valued Customer",
+          formName: form.name,
+        }) as React.ReactElement,
+      });
+    }
+
+    // 2. Notify Admin
+    await sendTransactionalEmail({
+      to: "team@slowmotors.com", // Replace with env var in real app
+      subject: `New Lead: ${form.name}`,
+      react: AdminNotification({
+        formName: form.name,
+        formId: formId,
+        submissionData: safeData,
+      }) as React.ReactElement,
+    });
 
     return { success: true };
   } catch (error) {
