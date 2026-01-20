@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient, Difficulty, GalleryType } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
@@ -14,17 +14,17 @@ async function main() {
       slug: 'tuscany-coastal-run',
       price: 2499.00,
       duration: '3 Days',
-      difficulty: "LEISURE",
+      difficulty: Difficulty.LEISURE,
       maxParticipants: 12,
       routeMapUrl: 'https://maps.example.com/tuscany-route',
-      content: JSON.stringify({
+      content: {
         description: "Experience the rolling hills and vineyards of Tuscany on this leisure drive.",
         itinerary: [
           { day: 1, activity: "Arrival in Florence" },
           { day: 2, activity: "Drive through Chianti" },
           { day: 3, activity: "Coastal finish in Livorno" }
         ]
-      }),
+      },
       dates: {
         create: [
           {
@@ -48,7 +48,7 @@ async function main() {
     data: {
       name: 'Vintage Vibes',
       description: 'A collection of classic cars from the 60s and 70s.',
-      type: "RIDE_GALLERY",
+      type: GalleryType.RIDE_GALLERY,
       items: {
         create: [
           {
@@ -76,7 +76,7 @@ async function main() {
     data: {
       name: 'Dynamic Enquiry',
       isActive: true,
-      schema: JSON.stringify({
+      schema: {
         fields: [
           {
             name: "fullName",
@@ -99,7 +99,7 @@ async function main() {
             required: false
           }
         ]
-      })
+      }
     }
   })
   console.log(`Created form: ${form.name}`)

@@ -62,7 +62,7 @@ export default async function RideDetailPage({ params }: PageProps) {
           <section className="prose prose-lg dark:prose-invert max-w-none">
             <h2 className="text-3xl font-bold">About the Ride</h2>
             <p className="text-lg leading-relaxed text-muted-foreground">
-               {(JSON.parse(ride.content) as { description?: string })?.description || "No description available."}
+               {(ride.content as { description?: string })?.description || "No description available."}
             </p>
           </section>
 
@@ -114,7 +114,7 @@ export default async function RideDetailPage({ params }: PageProps) {
                 <div className="mt-4">
                   <BookingDialog
                     formId={bookingForm.id}
-                    definition={JSON.parse(bookingForm.schema) as FormDefinition}
+                    definition={bookingForm.schema as unknown as FormDefinition}
                     rideTitle={ride.title}
                   />
                 </div>

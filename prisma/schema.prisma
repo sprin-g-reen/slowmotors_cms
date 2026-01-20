@@ -1,10 +1,29 @@
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 generator client {
   provider = "prisma-client-js"
+}
+
+enum Difficulty {
+  LEISURE
+  SPORT
+  ENDURANCE
+}
+
+enum GalleryType {
+  RIDE_GALLERY
+  EVENT
+  GENERAL
+}
+
+enum SubmissionStatus {
+  NEW
+  REVIEWED
+  ARCHIVED
 }
 
 model User {
@@ -22,10 +41,10 @@ model Ride {
   slug            String        @unique
   price           Decimal
   duration        String
-  difficulty      String        // Enum: LEISURE, SPORT, ENDURANCE
+  difficulty      Difficulty
   routeMapUrl     String?
   maxParticipants Int
-  content         String        // JSON string
+  content         Json
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
   dates           RideDate[]
@@ -47,7 +66,7 @@ model Gallery {
   id          String        @id @default(uuid())
   name        String
   description String
-  type        String        // Enum: RIDE_GALLERY, EVENT, GENERAL
+  type        GalleryType
   items       GalleryItem[]
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
@@ -73,7 +92,7 @@ model Post {
   title       String
   slug        String   @unique
   excerpt     String
-  content     String   // JSON string or Markdown
+  content     Json // Markdown or JSON content
   publishedAt DateTime
   authorId    String
   author      User     @relation(fields: [authorId], references: [id])
@@ -85,7 +104,7 @@ model Post {
 model DynamicForm {
   id          String           @id @default(uuid())
   name        String
-  schema      String           // JSON string
+  schema      Json
   isActive    Boolean          @default(true)
   submissions FormSubmission[]
   createdAt   DateTime         @default(now())
@@ -94,8 +113,8 @@ model DynamicForm {
 
 model FormSubmission {
   id            String           @id @default(uuid())
-  data          String           // JSON string
-  status        String           @default("NEW") // Enum: NEW, REVIEWED, ARCHIVED
+  data          Json
+  status        SubmissionStatus @default(NEW)
   dynamicFormId String
   dynamicForm   DynamicForm      @relation(fields: [dynamicFormId], references: [id])
   createdAt     DateTime         @default(now())
