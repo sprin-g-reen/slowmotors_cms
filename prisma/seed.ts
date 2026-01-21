@@ -65,19 +65,57 @@ async function migratePosts() {
   console.log(`Migrated ${posts.length} posts.`);
 }
 
+async function migratePages() {
+  console.log('Migrating Pages to Posts...');
+  const pages = await fetchJson(`${WP_API_URL}/pages?per_page=100`);
+
+  for (const page of pages) {
+    console.log(`Processing page: ${page.slug}`);
+
+    // We treat pages as Posts for now, as we don't have a Page model
+    // and we want to preserve content.
+
+    let coverImage = null;
+    if (page.featured_media) {
+      coverImage = await getMediaUrl(page.featured_media);
+    }
+
+    const title = he.decode(page.title.rendered);
+    const content = page.content.rendered;
+
+    await prisma.post.upsert({
+      where: { slug: page.slug },
+      update: {
+        title_en: title,
+        title_de: title, // Fallback
+        content_en: content,
+        content_de: content, // Fallback
+        published: page.status === 'publish',
+        coverImage,
+        updatedAt: new Date(page.modified),
+      },
+      create: {
+        slug: page.slug,
+        title_en: title,
+        title_de: title,
+        content_en: content,
+        content_de: content,
+        published: page.status === 'publish',
+        coverImage,
+        createdAt: new Date(page.date),
+        updatedAt: new Date(page.modified),
+      },
+    });
+  }
+  console.log(`Migrated ${pages.length} pages.`);
+}
+
 async function migrateMedia() {
   console.log('Migrating Media to Gallery...');
   const mediaItems = await fetchJson(`${WP_API_URL}/media?per_page=50`); // Fetch recent 50
 
   for (const item of mediaItems) {
     if (!item.source_url) continue;
-
-    // Check if it already exists to avoid duplicates if running multiple times
-    // Since GalleryImage doesn't have a unique slug or externalId, we might create duplicates if we are not careful.
-    // But for this task, I'll just create them.
-    // Ideally we should have `externalId` in schema.
-    // I will check by URL if possible, but URL is not unique in schema.
-    // I'll check if a gallery image with this url exists.
 
     const existing = await prisma.galleryImage.findFirst({
       where: { url: item.source_url },
@@ -99,6 +137,7 @@ async function migrateMedia() {
 async function main() {
   try {
     await migratePosts();
+    await migratePages();
     await migrateMedia();
   } catch (e) {
     console.error(e);
